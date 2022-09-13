@@ -92,5 +92,16 @@ pipeline{
                }
             }
         }
+        stage('verifying app deployment'){
+            steps{
+                script{
+                     withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'Kubeconfig', namespace: '', serverUrl: 'https://172.16.18.128:6443') {
+                        dir('kubernetes/') {
+                           sh 'kubectl run curl --image=curlimages/curl -i --rm --restart=Never -- curl myjavaapp-myapp:8080'
+                        }
+                    }
+                }
+            }
+        }
     }
 }

@@ -68,5 +68,29 @@ pipeline{
                 }
             }
         }
+        stage('manual approval'){
+            steps{
+                script{
+                    timeout(10) {
+                        input(id: "Deploy Gate", message: "Deploy ${params.project_name}?", ok: 'Deploy')
+                    }
+                }
+            }
+        }
+        stage('Deploying application on k8s cluster') {
+            steps {
+               script{
+                    withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'Kubeconfig', namespace: '', serverUrl: 'https://172.16.18.128:6443') {
+                        dir('kubernetes/') {
+                          sh '''
+                                unset http_proxy
+                                unset https_proxy
+                                helm upgrade --install --set image.repository="172.16.18.131:8083/springapp" --set image.tag="${VERSION}" myjavaapp myapp/ 
+                             '''
+                        }
+                    }
+               }
+            }
+        }
     }
 }
